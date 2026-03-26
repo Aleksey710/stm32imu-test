@@ -1,11 +1,8 @@
-#ifndef CONFIG_WIFI_H
-#define CONFIG_WIFI_H
+#ifndef FS_H
+#define FS_H
 //----------------------------------------------------------------------
-#include <inttypes.h>
+void littlefs_init(void);
 //----------------------------------------------------------------------
-// WiFi
-#define WIFI_SSID ("Afina")
-#define WIFI_PASSWORD ("Gramotey")
-
+void spiffs_init(void);
 //----------------------------------------------------------------------
-#endif // CONFIG_WIFI_H
+#endif // FS_H

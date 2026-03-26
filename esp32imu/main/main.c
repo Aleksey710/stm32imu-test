@@ -2,17 +2,20 @@
 #include "freertos/task.h"
 #include "freertos/queue.h"
 
-// #include "spiffs.h"
-#include "littlefs.h"
+#include "esp_log.h"
+
+#include "fs.h"
 
 #include "wifi.h"
 #include "webserver.h"
 // #include "ws_server.h"
 // #include "i2c_task.h"
 // #include "processing_task.h"
-
+//----------------------------------------------------------------------
 QueueHandle_t i2c_queue;
 QueueHandle_t queue;
+
+static const char *TAG = "MAIN ";
 //----------------------------------------------------------------------
 void app_main(void)
 {
@@ -20,7 +23,7 @@ void app_main(void)
     i2c_queue = xQueueCreate(10, sizeof(int));
 
     // --- CORE 0 ---
-
+    ESP_LOGI(TAG, "CORE 0 initing");
     littlefs_init();
     // spiffs_init();
 
@@ -30,11 +33,12 @@ void app_main(void)
     //     xTaskCreatePinnedToCore(webserver_task, "webserver_task", 8192, NULL, 5, NULL, 0);
     // xTaskCreatePinnedToCore(ws_server_task, "ws_task", 8192, NULL, 5, NULL, 0);
 
+    // --- CORE 1 ---
+    ESP_LOGI(TAG, "CORE 1 initing");
     /*
-        // --- CORE 1 ---
-        xTaskCreatePinnedToCore(i2c_task, "i2c_task", 4096, (void*)i2c_queue, 6, NULL, 1);
-        xTaskCreatePinnedToCore(processing_task, "processing_task", 4096, (void*)i2c_queue, 5, NULL, 1);
-        */
+    xTaskCreatePinnedToCore(i2c_task, "i2c_task", 4096, (void*)i2c_queue, 6, NULL, 1);
+    xTaskCreatePinnedToCore(processing_task, "processing_task", 4096, (void*)i2c_queue, 5, NULL, 1);
+    */
 }
 //----------------------------------------------------------------------
 /*

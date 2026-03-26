@@ -1,7 +1,8 @@
 idf_component_register(
     SRCS 
+        "fs.c"
         #"spiffs.c"
-        "littlefs.c"
+        #"littlefs.c"
 
 
     INCLUDE_DIRS
@@ -10,8 +11,8 @@ idf_component_register(
 
     REQUIRES 
         nvs_flash
-        #spiffs
-        #esp_littlefs
+        spiffs
+        esp_littlefs
         #esp_wifi 
 
         config

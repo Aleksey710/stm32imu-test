@@ -1,11 +1,11 @@
-#ifndef CONFIG_WIFI_H
-#define CONFIG_WIFI_H
+#ifndef CONFIG_FS_H
+#define CONFIG_FS_H
 //----------------------------------------------------------------------
 #include <inttypes.h>
 //----------------------------------------------------------------------
-// WiFi
-#define WIFI_SSID ("Afina")
-#define WIFI_PASSWORD ("Gramotey")
 
+#define FILEPATH_MAX 256
+#define FS_BASE_PATH "/fs"
+#define FS_PARTITION_LABEL "/fs"
 //----------------------------------------------------------------------
-#endif // CONFIG_WIFI_H
+#endif // CONFIG_FS_H

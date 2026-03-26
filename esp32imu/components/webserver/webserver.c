@@ -9,6 +9,9 @@
 #include "cJSON.h"
 #include <string.h>
 #include <stdlib.h>
+
+#include "config_fs.h"
+#include "fs.h"
 //----------------------------------------------------------------------
 #define MAX_WS_CLIENTS 8
 
@@ -85,11 +88,37 @@ static void set_content_type(httpd_req_t *req, const char *filepath)
 //----------------------------------------------------------------------
 static esp_err_t file_get_handler(httpd_req_t *req)
 {
-    char filepath[128];
-    snprintf(filepath, sizeof(filepath), "/spiffs%s", req->uri);
+    // Проверка длинны пути файла
+    if (strlen(req->uri) > (FILEPATH_MAX - 3))
+    {
+        httpd_resp_send_err(req, HTTPD_414_URI_TOO_LONG, "URI too long");
+        return ESP_FAIL;
+    }
 
-    char gz_path[128];
-    snprintf(gz_path, sizeof(gz_path), "%s.gz", filepath);
+    // защита от ../ (path traversal):
+    if (strstr(req->uri, ".."))
+    {
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid path");
+        return ESP_FAIL;
+    }
+
+    char filepath[FILEPATH_MAX];
+    int filepath_len = snprintf(filepath, sizeof(filepath), "/fs%s", req->uri);
+
+    if (filepath_len < 0 || filepath_len >= sizeof(filepath))
+    {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Path too long");
+        return ESP_FAIL;
+    }
+
+    char gz_path[FILEPATH_MAX];
+    int gz_len = snprintf(gz_path, sizeof(gz_path), "%s.gz", filepath);
+
+    if (gz_len < 0 || gz_len >= sizeof(gz_path))
+    {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Path too long");
+        return ESP_FAIL;
+    }
 
     // // если корень — отдаём index.html
     // if (strcmp(req->uri, "/") == 0)
@@ -126,12 +155,6 @@ static esp_err_t file_get_handler(httpd_req_t *req)
 
     // вставляем MIME-типы
     set_content_type(req, filepath);
-
-    // zip header
-    if (is_gzip)
-    {
-        httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
-    }
 
     char chunk[1024];
     size_t read_bytes;

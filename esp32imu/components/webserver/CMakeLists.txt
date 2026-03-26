@@ -12,7 +12,7 @@ idf_component_register(
         esp_wifi 
         nvs_flash
         esp_http_server 
-        #esp_littlefs
+        esp_littlefs
         
 
         fs
