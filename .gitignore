@@ -1,12 +1,1 @@
 .env
-
-/build
-/.vscode
-/not_working
-
-/docs
-/nginx
-esp32imu.yml
-lib_coloration.sh
-esp32imu.sh
-
