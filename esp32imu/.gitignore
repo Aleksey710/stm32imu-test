@@ -1,0 +1,8 @@
+.env
+
+.vscode/
+build/
+managed_components/
+storage_test/
+not_working/
+

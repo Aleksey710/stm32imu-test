@@ -1,0 +1,38 @@
+version: '3.9'
+########################################################################
+networks:
+    netname: # networks name
+        ipam:
+            driver: default
+            config:
+                - subnet: ${IPV4_SUBNET}.0/24
+########################################################################
+volumes:
+    mkdocs_files:
+        driver: local
+        driver_opts:
+            o: bind
+            type: none
+            device: /opt/${PROJECT_NAME}/site
+########################################################################
+services:
+    nginx:
+        image: nginx:latest
+        ports:
+          - "8140:80"
+        volumes:
+          - mkdocs_files:/var/www/html
+          - /opt/${PROJECT_NAME}/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+        networks:
+            netname: #name
+                ipv4_address: ${IPV4_SUBNET}.80
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost/health || exit 1" ]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 10s
+        restart: unless-stopped
+########################################################################
+
+

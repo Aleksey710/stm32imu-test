@@ -1,0 +1,114 @@
+# Создание сайта и запуск в локальном режиме
+# mkdocs build && mkdocs serve
+site_name: ESP32IMU
+########################################################################
+nav:
+  - Home: index.md
+  - About: about.md
+  - Способ наполнения документации: docs.md
+  #---------------------------------------------------------------------
+  - Getting Started:
+    - Installation: getting_started/installation.md
+    - Build: getting_started/build.md
+  #---------------------------------------------------------------------
+  - Sensors: 
+    - Sensors: sensors/sensors.md
+    - Sensors: sensors/supports.md
+    #-------------------------------------------------------------------
+    - Gyroscopes: 
+      - Gyroscopes: sensors/gyroscopes/gyroscopes.md
+    #-------------------------------------------------------------------
+    - Accelerometers: 
+      - Accelerometers: sensors/accelerometers/accelerometers.md
+    #-------------------------------------------------------------------
+    - Magnetometers: 
+      - Magnetometers: sensors/magnetometers/magnetometers.md
+    #-------------------------------------------------------------------
+    - IMU: 
+      - IMU: sensors/IMU/MPU6000.md
+    #-------------------------------------------------------------------
+    - OpticFlow: 
+      - OpticFlow: sensors/OpticFlow/OpticFlow.md
+  #---------------------------------------------------------------------
+  - IMU: 
+    - Quaternions: IMU/quaternions.md
+    - IMU: IMU/IMU.md
+    - Kalman: IMU/Kalman/Kalman.md
+    - Madgwick: IMU/Madgwick/Madgwick.md
+
+  #---------------------------------------------------------------------
+  - MAVLink:
+    - MAVLink: MAVLink/MAVLink.md
+  #---------------------------------------------------------------------
+  - Services:
+    - Services: services/services.md
+  #---------------------------------------------------------------------
+  - Development:
+    - Architecture: development/architecture.md
+    - Coding Style: development/coding_style.md
+########################################################################
+theme: # default, readthedocs, material, bootstrap, flatly
+  name: readthedocs # default, readthedocs, material, bootstrap, flatly
+#  logo: images/logo.png
+#  style: dark
+#  font: false
+#-----------------------------------------------------------------------
+#theme:
+#  name: material
+#  features:
+#    - navigation.tabs
+#    - navigation.sections
+#    - content.code.copy
+########################################################################
+extra_javascript:
+  #- https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+  - js/tex-mml-chtml.js
+########################################################################
+#extra_css:
+#  - css/custom.css
+#  - css/print.css
+#  - css/pdf.css
+########################################################################
+# Плагины
+#-----------------------------------------------------------------------
+plugins:
+  search: {}
+  # авто-меню по папкам
+  awesome-pages: {}
+  pdf-export: 
+    combined: true
+    # PDF export is disabled (set environment variable ENABLE_PDF to 1 to enable)
+    enabled_if_env: ENABLE_PDF
+    media_type: print
+    verbose: true
+  mkdocs-video: {}
+  # дата изменения файлов
+  git-revision-date: {}
+  # макросы
+  macros: {}
+  # диаграммы
+#  mermaid2:
+#    arguments:
+#      theme: default
+  # PlantUML
+#  plantuml:
+#    puml_url: "http://www.plantuml.com/plantuml/img/"  # URL PlantUML сервера
+  # версии документации
+  mike: {}
+########################################################################
+# Markdown расширения
+#-----------------------------------------------------------------------
+markdown_extensions:
+  # подсветка синтаксиса
+  - pymdownx.highlight
+  # вложенные блоки кода
+  - pymdownx.superfences
+  # подсветка inline кода
+  - pymdownx.inlinehilite
+  # формулы
+  - pymdownx.arithmatex   
+  # note, warning
+  - admonition            
+  - toc:
+      permalink: true
+
