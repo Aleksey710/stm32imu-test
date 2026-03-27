@@ -1,7 +1,8 @@
 .env
-/build
-/.vscode
-/managed_components
-/storage_test
-/not_working
+
+.vscode/**
+build/**
+managed_components/**
+storage_test/**
+not_working/**
 
