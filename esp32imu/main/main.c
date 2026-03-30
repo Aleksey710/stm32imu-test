@@ -13,32 +13,41 @@
 // #include "processing_task.h"
 //----------------------------------------------------------------------
 QueueHandle_t i2c_queue;
-QueueHandle_t queue;
 
 static const char *TAG = "MAIN ";
 //----------------------------------------------------------------------
 void app_main(void)
 {
+    ESP_LOGI(TAG, "************************************************************************");
+    ESP_LOGI(TAG, "***                    START                                         ***");
+    ESP_LOGI(TAG, "************************************************************************");
+    //------------------------------------------------------------------
     // Очередь для передачи данных между задачами
     i2c_queue = xQueueCreate(10, sizeof(int));
 
+    ws_queue = xQueueCreate(10, sizeof(mpu_data_t));
+
+    //------------------------------------------------------------------
     // --- CORE 0 ---
     ESP_LOGI(TAG, "CORE 0 initing");
     littlefs_init();
     // spiffs_init();
 
     wifi_init();
-    start_webserver(queue);
+
+    start_webserver(ws_queue);
 
     //     xTaskCreatePinnedToCore(webserver_task, "webserver_task", 8192, NULL, 5, NULL, 0);
     // xTaskCreatePinnedToCore(ws_server_task, "ws_task", 8192, NULL, 5, NULL, 0);
 
+    //------------------------------------------------------------------
     // --- CORE 1 ---
     ESP_LOGI(TAG, "CORE 1 initing");
     /*
     xTaskCreatePinnedToCore(i2c_task, "i2c_task", 4096, (void*)i2c_queue, 6, NULL, 1);
     xTaskCreatePinnedToCore(processing_task, "processing_task", 4096, (void*)i2c_queue, 5, NULL, 1);
     */
+    //------------------------------------------------------------------
 }
 //----------------------------------------------------------------------
 /*

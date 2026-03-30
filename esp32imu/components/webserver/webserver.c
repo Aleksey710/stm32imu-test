@@ -18,17 +18,17 @@
 static const char *TAG = "WEBSERVER";
 
 static httpd_handle_t server = NULL;
-static QueueHandle_t ws_queue;
+// static QueueHandle_t ws_queue;
 
 // Массив для хранения fd WebSocket клиентов
 static int ws_clients[MAX_WS_CLIENTS];
 static SemaphoreHandle_t ws_clients_mutex = NULL;
 
-typedef struct
-{
-    int16_t ax, ay, az;
-    int16_t gx, gy, gz;
-} mpu_data_t;
+// typedef struct
+// {
+//     int16_t ax, ay, az;
+//     int16_t gx, gy, gz;
+// } mpu_data_t;
 
 //----------------------------------------------------------------------
 static void ws_add_client(int fd)
@@ -61,6 +61,7 @@ static void ws_remove_client(int fd)
     xSemaphoreGive(ws_clients_mutex);
 }
 //----------------------------------------------------------------------
+/*
 static esp_err_t root_get_handler(httpd_req_t *req)
 {
     const char *html =
@@ -75,6 +76,7 @@ static esp_err_t root_get_handler(httpd_req_t *req)
     httpd_resp_send(req, html, HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
+*/
 //----------------------------------------------------------------------
 static void set_content_type(httpd_req_t *req, const char *filepath)
 {
@@ -90,7 +92,7 @@ static void set_content_type(httpd_req_t *req, const char *filepath)
 //----------------------------------------------------------------------
 static esp_err_t file_get_handler(httpd_req_t *req)
 {
-    ESP_LOGI(TAG, "file_get_handler[%s]", req->uri);
+    // ESP_LOGI(TAG, "file_get_handler_1 req[%s]", req->uri);
 
     //------------------------------------------------------------------
     // Проверка длинны пути файла
@@ -113,18 +115,22 @@ static esp_err_t file_get_handler(httpd_req_t *req)
     int filepath_len = 0;
 
     // если корень — отдаём index.html
-    if (strcmp(req->uri, "/") == 0)
+    if (strcmp(req->uri, "/") == 0 ||
+        strcmp(req->uri, "/index.htm") == 0 ||
+        strcmp(req->uri, "/index.html") == 0)
     {
-        // strcpy(filepath, "/web/index.html");
-        filepath_len = snprintf(filepath, sizeof(filepath), "%s%s", FS_WEBSERVER_PATH, "/index.html");
-
-        ESP_LOGI(TAG, "file_get_handler root filepath[%s]", filepath);
+        filepath_len = snprintf(filepath, sizeof(filepath), "%s/index.html", FS_WEBSERVER_PATH);
     }
-    else
+    else // иначе ищем в файловой системе
     {
         filepath_len = snprintf(filepath, sizeof(filepath), "%s%s", FS_WEBSERVER_PATH, req->uri);
+    }
 
-        ESP_LOGI(TAG, "file_get_handler filepath[%s]", filepath);
+    if (strcmp(req->uri, "/favicon.ico") == 0)
+    {
+        httpd_resp_set_status(req, "204 No Content");
+        httpd_resp_send(req, NULL, 0);
+        return ESP_OK;
     }
 
     if (filepath_len < 0 || filepath_len >= sizeof(filepath))
@@ -133,9 +139,7 @@ static esp_err_t file_get_handler(httpd_req_t *req)
         return ESP_FAIL;
     }
 
-    //------------------------------------------------------------------
-    // вставляем MIME-типы
-    set_content_type(req, filepath);
+    // ESP_LOGI(TAG, "file_get_handler_2 filepath[%s]", filepath);
 
     //------------------------------------------------------------------
     char gz_path[FILEPATH_MAX];
@@ -147,12 +151,13 @@ static esp_err_t file_get_handler(httpd_req_t *req)
         return ESP_FAIL;
     }
 
-    //------------------------------------------------------------------
-    ESP_LOGI(TAG, "file_get_handler gz_path[%s]", gz_path);
+    // ESP_LOGI(TAG, "file_get_handler_3 gz_path[%s]", gz_path);
 
-    FILE *f = fopen(gz_path, "r");
+    //------------------------------------------------------------------
+    FILE *f = nullptr;
     if (f)
     {
+        f = fopen(gz_path, "r");
         httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
     }
     else
@@ -162,22 +167,35 @@ static esp_err_t file_get_handler(httpd_req_t *req)
 
     if (!f)
     {
+
+        // {
+        //     // SPA fallback → всегда index.html
+        //     snprintf(filepath, sizeof(filepath),
+        //              "%s/index.html", FS_WEBSERVER_PATH);
+
+        //     f = fopen(filepath, "r");
+        // }
+
         httpd_resp_send_404(req);
         return ESP_FAIL;
     }
-    /*
-        //------------------------------------------------------------------
-        // Добавление кэширования для не ".html" (JS/CSS...) файлов
-        if (strstr(filepath, ".html"))
-        {
-            httpd_resp_set_type(req, "text/html");
-            httpd_resp_set_hdr(req, "Cache-Control", "no-cache");
-        }
-        else
-        {
-            httpd_resp_set_hdr(req, "Cache-Control", "max-age=86400");
-        }
-    */
+
+    //------------------------------------------------------------------
+    // вставляем MIME-типы
+    set_content_type(req, filepath);
+
+    //------------------------------------------------------------------
+    // Добавление кэширования файлов
+    if (strstr(filepath, ".html"))
+    {
+        httpd_resp_set_hdr(req, "Cache-Control", "no-cache, no-store, must-revalidate");
+    }
+    else if (
+        strstr(filepath, ".js") ||
+        strstr(filepath, ".css"))
+    {
+        httpd_resp_set_hdr(req, "Cache-Control", "public, max-age=31536000, immutable");
+    }
 
     //------------------------------------------------------------------
     char chunk[1024];
@@ -189,6 +207,8 @@ static esp_err_t file_get_handler(httpd_req_t *req)
     }
 
     fclose(f);
+
+    ESP_LOGI(TAG, "file_get_handler_4 req[%s] resp[%s]", req->uri, filepath);
 
     httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;
@@ -203,15 +223,15 @@ static esp_err_t ws_handler(httpd_req_t *req)
     httpd_ws_frame_t frame = {0};
     frame.type = HTTPD_WS_TYPE_TEXT;
 
-    while (1)
-    {
-        esp_err_t ret = httpd_ws_recv_frame(req, &frame, 0);
-        if (ret != ESP_OK)
-        {
-            ws_remove_client(fd);
-            break;
-        }
-    }
+    // while (1)
+    // {
+    //     esp_err_t ret = httpd_ws_recv_frame(req, &frame, 0);
+    //     if (ret != ESP_OK)
+    //     {
+    //         ws_remove_client(fd);
+    //         break;
+    //     }
+    // }
     return ESP_OK;
 }
 //----------------------------------------------------------------------
@@ -223,7 +243,6 @@ static void ws_sender_task(void *arg)
     {
         if (xQueueReceive(ws_queue, &data, portMAX_DELAY))
         {
-
             cJSON *root = cJSON_CreateObject();
             cJSON_AddNumberToObject(root, "ax", data.ax);
             cJSON_AddNumberToObject(root, "ay", data.ay);
@@ -248,6 +267,8 @@ static void ws_sender_task(void *arg)
                 if (ws_clients[i] != -1)
                 {
                     esp_err_t ret = httpd_ws_send_frame_async(server, ws_clients[i], &frame);
+
+                    ESP_LOGI(TAG, "ws_sender_task sended[%s]", json_str);
                     if (ret != ESP_OK)
                     {
                         ws_clients[i] = -1; // клиент отключился
@@ -293,6 +314,8 @@ static void ws_ping_task(void *arg)
 void start_webserver(QueueHandle_t queue)
 {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+
+    // разрешает wildcard
     config.uri_match_fn = httpd_uri_match_wildcard;
 
     if (httpd_start(&server, &config) != ESP_OK)
@@ -301,10 +324,6 @@ void start_webserver(QueueHandle_t queue)
         return;
     }
 
-    //------------------------------------------------------------------
-    // Обработчики регистрируются ниже и обрабатываются
-    // в порядке очередности регистрации.
-    // Обработчик .uri = "/*" вначале перекрыл бы все, по этому обрабатывается в конце
     //------------------------------------------------------------------
     ws_queue = queue;
 
@@ -316,9 +335,17 @@ void start_webserver(QueueHandle_t queue)
     }
 
     for (int i = 0; i < MAX_WS_CLIENTS; i++)
+    {
         ws_clients[i] = -1;
+    }
 
-    // WebSocket URI
+    //------------------------------------------------------------------
+    // Обработчики регистрируются ниже и обрабатываются
+    // в порядке очередности регистрации.
+    // Обработчик .uri = "/*" вначале перекрыл бы все, по этому обрабатывается в конце
+    //------------------------------------------------------------------
+
+    // WebSocket endpoint
     httpd_uri_t ws = {
         .uri = "/ws",
         .method = HTTP_GET,
@@ -326,19 +353,27 @@ void start_webserver(QueueHandle_t queue)
         .is_websocket = true};
 
     httpd_register_uri_handler(server, &ws);
-    //------------------------------------------------------------------
-    /*
-        // корневой URI
-        httpd_uri_t root = {
-            .uri = "/",
-            .method = HTTP_GET,
-            .handler = root_get_handler
-        };
 
-        httpd_register_uri_handler(server, &root);
-    */
     //------------------------------------------------------------------
-    // файлы из FS
+    // root endpoint
+    httpd_uri_t root = {
+        .uri = "/",
+        .method = HTTP_GET,
+        .handler = file_get_handler};
+
+    httpd_register_uri_handler(server, &root);
+
+    httpd_uri_t index = {
+        .uri = "/index.html",
+        .method = HTTP_GET,
+        .handler = file_get_handler};
+
+    httpd_register_uri_handler(server, &index);
+
+    //------------------------------------------------------------------
+    // ***
+    //------------------------------------------------------------------
+    // Все остальное, что не было зарегестрировано ранее
     httpd_uri_t file_uri = {
         .uri = "/*",
         .method = HTTP_GET,
@@ -349,7 +384,10 @@ void start_webserver(QueueHandle_t queue)
 
     //------------------------------------------------------------------
     // xTaskCreate(ws_sender_task, "ws_sender", 4096, NULL, 5, NULL);
+    xTaskCreatePinnedToCore(ws_sender_task, "ws_sender", 4096, NULL, 5, NULL, 0);
+
     // xTaskCreate(ws_ping_task, "ws_ping", 2048, NULL, 5, NULL);
+    // xTaskCreatePinnedToCore(ws_ping_task, "ws_ping", 2048, NULL, 5, NULL, 0);
 }
 //----------------------------------------------------------------------
 /*

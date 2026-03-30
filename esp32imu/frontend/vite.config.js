@@ -1,11 +1,17 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  root: 'src',      // указываем папку с index.html
+  root: 'src',
   build: {
     outDir: '../dist',
+    emptyOutDir: true,
     rollupOptions: {
-      output: { entryFileNames: 'bundle.js' }
+      output: {
+        entryFileNames: 'assets/app.js',
+      }
     }
+  },
+  server: {
+    port: 5173
   }
 });

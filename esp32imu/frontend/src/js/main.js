@@ -1,66 +1,52 @@
-import * as THREE from 'three';
-import Chart from 'chart.js/auto';
+import * as ws from './websocketHandler.js';
+import * as dv from './3DView.js';
+import * as tv from './tableHandler.js';
+import * as cv from './chartHandler.js';
 
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize(400, 400);
-document.getElementById('scene').appendChild(renderer.domElement);
+/*
+console.log('MAIN JS EXEC', Date.now());
+console.log('MAIN JS URL:', import.meta.url);
+console.log('SCRIPT TAG:', document.currentScript?.src);
+console.log('READY STATE:', document.readyState);
+console.log('init (HMR)', import.meta.hot);
+console.trace('ENTRY STACK');
+*/
 
-const geometry = new THREE.BoxGeometry();
-const material = new THREE.MeshStandardMaterial({ color: 0x00ffcc });
-const cube = new THREE.Mesh(geometry, material);
-scene.add(cube);
-
-camera.position.z = 5;
-
-const light = new THREE.DirectionalLight(0xffffff, 1);
-light.position.set(0,1,1).normalize();
-scene.add(light);
-
-function animate() {
-  requestAnimationFrame(animate);
-  renderer.render(scene, camera);
+function updateData(data) {
+	tv.dataUpdate(data);
+	cv.dataUpdate(data);
+	//dv.dataUpdate(data);
 }
-animate();
+/*
+let latestData = null;
 
-// WebSocket
-const ws = new WebSocket('ws://192.168.234.17/ws'); // замените на IP ESP32
-ws.onmessage = (event) => {
-  const data = JSON.parse(event.data);
-  cube.rotation.x = data.x;
-  cube.rotation.y = data.y;
-  cube.rotation.z = data.z;
+function updateData(data) {
+    latestData = data;
+}
 
-  // Chart update
-  if (window.chart) {
-    window.chart.data.datasets[0].data.push(data.x);
-    window.chart.data.datasets[1].data.push(data.y);
-    window.chart.data.datasets[2].data.push(data.z);
-    window.chart.update();
-  }
+function renderLoop() {
+    if (latestData) {
+        tv.dataUpdate(latestData);
+        cv.dataUpdate(latestData);
+    }
+    requestAnimationFrame(renderLoop);
+}
 
-  // Table update
-  const table = document.getElementById('data-table');
-  table.innerHTML = `<tr><td>X</td><td>${data.x.toFixed(2)}</td></tr>
-                     <tr><td>Y</td><td>${data.y.toFixed(2)}</td></tr>
-                     <tr><td>Z</td><td>${data.z.toFixed(2)}</td></tr>`;
-};
+renderLoop();
+*/
 
-// Chart
-const ctx = document.getElementById('chart').getContext('2d');
-window.chart = new Chart(ctx, {
-  type: 'line',
-  data: {
-    labels: [],
-    datasets: [
-      { label: 'X', data: [], borderColor: 'red' },
-      { label: 'Y', data: [], borderColor: 'green' },
-      { label: 'Z', data: [], borderColor: 'blue' }
-    ]
-  },
-  options: {
-    animation: false,
-    responsive: true
-  }
-});
+function setup() {
+	//console.log('setup start...', location.hostname);
+	cv.initChart();
+	//dv.init3DView();
+	ws.initWebSocket(updateData);
+}
+
+// НАДЁЖНЫЙ GUARD
+if (!window.__APP_STARTED__) {
+    window.__APP_STARTED__ = true;
+    setup();
+} else {
+    console.warn('App already started');
+}
+
