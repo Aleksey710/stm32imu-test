@@ -1,6 +1,6 @@
 const WebSocket = require('ws');
 
-const PERIOD = 1000; //  in milliseconds (1000 ms = 1 second)
+const PERIOD = 100; //  in milliseconds (1000 ms = 1 second)
 
 const PORT = 8080;
 const MODE = process.env.MODE || 'sin'; // sin | random | static

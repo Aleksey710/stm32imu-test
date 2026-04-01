@@ -4,9 +4,6 @@
 #include <stdlib.h>
 #include <inttypes.h>
 
-// форматирование float для JSON
-#define FMT_F "%.2f"
-
 #include "esp_http_server.h"
 #include "esp_log.h"
 
@@ -17,6 +14,7 @@
 
 #include "cJSON.h"
 
+#include "config.h"
 #include "config_fs.h"
 #include "fs.h"
 //----------------------------------------------------------------------
@@ -31,7 +29,7 @@ static int ws_clients[MAX_WS_CLIENTS];
 static SemaphoreHandle_t ws_clients_mutex = NULL;
 
 //----------------------------------------------------------------------
-static void ws_add_client(int fd)
+static void ws_add_client(const int fd)
 {
     xSemaphoreTake(ws_clients_mutex, portMAX_DELAY);
     for (int i = 0; i < MAX_WS_CLIENTS; i++)
@@ -46,7 +44,7 @@ static void ws_add_client(int fd)
     xSemaphoreGive(ws_clients_mutex);
 }
 //----------------------------------------------------------------------
-static void ws_remove_client(int fd)
+static void ws_remove_client(const int fd)
 {
     xSemaphoreTake(ws_clients_mutex, portMAX_DELAY);
     for (int i = 0; i < MAX_WS_CLIENTS; i++)
@@ -267,6 +265,7 @@ static void ws_sender_task(void *arg)
 
     while (1)
     {
+        /*
         if (test_data.x < 1000)
             test_data.x++;
         else
@@ -288,7 +287,7 @@ static void ws_sender_task(void *arg)
         //     test_data.timestamp = 0;
 
         xQueueSend(ws_queue, &test_data, portMAX_DELAY); // добавление тестовых данных
-
+        */
         //--------------------
         if (xQueueReceive(ws_queue, &data, portMAX_DELAY))
         {
@@ -394,7 +393,7 @@ static void ws_ping_task(void *arg)
     }
 }
 //----------------------------------------------------------------------
-void start_webserver(QueueHandle_t queue)
+void start_webserver(QueueHandle_t queue, const int cpuid)
 {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
 
@@ -467,11 +466,11 @@ void start_webserver(QueueHandle_t queue)
 
     //------------------------------------------------------------------
     // xTaskCreate(ws_sender_task, "ws_sender", 4096, NULL, 5, NULL);
-    // xTaskCreatePinnedToCore(ws_sender_task, "ws_sender", 4096, NULL, 5, NULL, 0);
-    xTaskCreatePinnedToCore(ws_sender_task, "ws_sender", 8192, NULL, 5, NULL, 0);
+    // xTaskCreatePinnedToCore(ws_sender_task, "ws_sender", 4096, NULL, 5, NULL, cpuid);
+    xTaskCreatePinnedToCore(ws_sender_task, "ws_sender", 8192, NULL, 5, NULL, cpuid);
 
     // xTaskCreate(ws_ping_task, "ws_ping", 2048, NULL, 5, NULL);
-    // xTaskCreatePinnedToCore(ws_ping_task, "ws_ping", 2048, NULL, 5, NULL, 0);
+    // xTaskCreatePinnedToCore(ws_ping_task, "ws_ping", 2048, NULL, 5, NULL, cpuid);
 }
 //----------------------------------------------------------------------
 /*

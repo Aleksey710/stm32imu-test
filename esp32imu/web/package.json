@@ -4,7 +4,7 @@
   "description": "ESP32 Web",
   "scripts": {
     "dev:frontend": "vite",
-    "dev:backend":  "node ./back_imitator/server.js",
+    "dev:backend":  "node ./backend/server.js",
     "dev":          "MODE=sin    concurrently -n FRONT,BACK -c green,blue \"npm:dev:frontend\" \"npm:dev:backend\"",
     "dev2":         "MODE=random concurrently -n FRONT,BACK -c green,blue \"npm:dev:frontend\" \"npm:dev:backend\"",
     "dev3":         "MODE=static concurrently -n FRONT,BACK -c green,blue \"npm:dev:frontend\" \"npm:dev:backend\"",

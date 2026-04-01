@@ -1,7 +1,7 @@
 idf_component_register(
     SRCS 
-        "i2c.c"
-        "i2c_devices.c"
+        "MPU6050.c"
+        "mpu6050_test.c"
 
 
 
@@ -10,9 +10,12 @@ idf_component_register(
 
 
     REQUIRES 
-        driver
+        # nvs_flash
+        # esp_wifi 
+        # #mbedtls
+        # wt_libs
         #esp_driver_i2c
-        
+        mpu6050
         # esp_driver_spi
         # esp_driver_gptimer
         # esp_driver_gpio
@@ -21,7 +24,8 @@ idf_component_register(
         # esp_driver_uart
         #AL
         config
-
-        MPU6050
+        i2c
+        webserver
+        
 )
    

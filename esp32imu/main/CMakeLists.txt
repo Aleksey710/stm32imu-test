@@ -25,6 +25,8 @@ idf_component_register(
 		webserver
 		i2c
 
+		MPU6050
+
 )
 #-----------------------------------------------------------------------
 # Сборка и подготовка frontend (клиентская часть сайта)
@@ -41,8 +43,8 @@ if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
 
 	# Каталог хранилища
 	set(STORAGE_DIR ${CMAKE_BINARY_DIR}/storage)
-	# Рабочий каталог frontend
-	set(FRONTEND_DIR ${CMAKE_SOURCE_DIR}/frontend)
+	# Исходники web
+	set(FRONTEND_DIR ${CMAKE_SOURCE_DIR}/web)
 	# Каталог frontend в хранилище
 	set(FRONTEND_STORAGE_DIR ${STORAGE_DIR}/frontend)
 
@@ -73,7 +75,7 @@ if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
 
 	# Копируем frontend/dist → storage (с сохранением структуры)
 	add_custom_command(
-		COMMENT "Copying frontend/dist to storage directory"
+		COMMENT "Copying web/dist to storage directory"
 		DEPENDS ${FRONTEND_STORAGE_DIR}/.created
 		COMMAND ${CMAKE_COMMAND} -E copy_directory ${FRONTEND_DIR}/dist ${FRONTEND_STORAGE_DIR}
 		COMMAND ${CMAKE_COMMAND} -E touch ${FRONTEND_STORAGE_DIR}/.prepared

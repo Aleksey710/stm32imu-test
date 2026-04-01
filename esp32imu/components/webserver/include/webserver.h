@@ -41,6 +41,6 @@ typedef struct
 } mpu_data_t;
 
 //----------------------------------------------------------------------
-void start_webserver(QueueHandle_t queue);
+void start_webserver(QueueHandle_t queue, const int cpuid);
 //----------------------------------------------------------------------
 #endif // WEBSERVER_H

@@ -1,8 +1,11 @@
-#ifndef I2C_H
-#define I2C_H
+#ifndef I2C_DEVICE_H
+#define I2C_DEVICE_H
 //----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
-void i2c_init(const int cpuid);
+// DEVICE INTERFACE
+
+typedef struct _i2c_device i2c_device_t;
+
 //----------------------------------------------------------------------
-#endif // I2C_H
+#endif // I2C_DEVICE_H

@@ -1,7 +1,6 @@
 idf_component_register(
     SRCS 
-        "i2c.c"
-        "i2c_devices.c"
+        #"winbondW25N.c"
 
 
 
@@ -10,18 +9,16 @@ idf_component_register(
 
 
     REQUIRES 
-        driver
-        #esp_driver_i2c
-        
+        # nvs_flash
+        # esp_wifi 
+        # #mbedtls
+        # wt_libs
+        # esp_driver_i2c
         # esp_driver_spi
         # esp_driver_gptimer
         # esp_driver_gpio
         # esp_driver_rmt
         # esp_driver_ledc
         # esp_driver_uart
-        #AL
-        config
-
-        MPU6050
 )
    

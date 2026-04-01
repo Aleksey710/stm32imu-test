@@ -1,4 +1,4 @@
-version: "1.20.4"
+version: 1.20.4
 description: LittleFS is a small fail-safe filesystem for micro-controllers.
 url: https://github.com/joltwallet/esp_littlefs
 dependencies:
@@ -6,3 +6,13 @@ dependencies:
   esp_littlefs:
     path: ../components/esp_littlefs
   joltwallet/littlefs: ==1.20.4
+  #---------------------------------------------------------------------
+  # https://github.com/esp-idf-lib/mpu6050/blob/main/examples/default/main/idf_component.yml
+  esp-idf-lib/mpu6050: 
+    version: "*"
+    #override_path: "../components/esp_mpu6050"
+  # esp-idf-lib/esp_idf_lib_helpers:
+  #   version: "*"
+  # esp-idf-lib/i2cdev:
+  #   version: "*"
+  #---------------------------------------------------------------------

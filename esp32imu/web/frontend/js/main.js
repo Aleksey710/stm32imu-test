@@ -1,5 +1,5 @@
 import * as ws from './websocketHandler.js';
-import * as dv from './3DView.js';
+//import * as dv from './3DView.js';
 import * as tv from './tableHandler.js';
 import * as cv from './chartHandler.js';
 

@@ -120,6 +120,19 @@ sdkconfig
 sdkconfig.defaults
 sdkconfig.old
 
+## Driver for MPU6000/MPU6050 6-axis MotionTracking device.
+
+https://components.espressif.com/components/esp-idf-lib/mpu6050/versions/2.1.3/readme?language=en
+
+https://github.com/esp-idf-lib/mpu6050/blob/main/examples/default/README.md
+
+#Installation
+idf.py add-dependency esp-idf-lib/mpu6050
+
+
+# альтернативная установка в git проект
+git submodule add https://github.com/esp-idf-lib/mpu6050.git
+git submodule update --init --recursive
 
 
 ## Изменения

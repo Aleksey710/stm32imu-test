@@ -11,8 +11,11 @@
 #include "i2c.h"
 
 // #include "ws_server.h"
-// #include "i2c_task.h"
+
 // #include "processing_task.h"
+//----------------------------------------------------------------------
+#include <mpu6050.h>
+#include "mpu6050_test.h"
 //----------------------------------------------------------------------
 QueueHandle_t i2c_queue;
 
@@ -30,28 +33,37 @@ void app_main(void)
 
     ws_queue = xQueueCreate(10, sizeof(mpu_data_t));
 
+    int cpuid;
     //------------------------------------------------------------------
     // --- CORE 0 ---
+    cpuid = 0;
+
     ESP_LOGI(TAG, "CORE 0 initing");
+
     littlefs_init();
     // spiffs_init();
 
     wifi_init();
 
-    start_webserver(ws_queue);
+    start_webserver(ws_queue, cpuid);
 
     //     xTaskCreatePinnedToCore(webserver_task, "webserver_task", 8192, NULL, 5, NULL, 0);
     // xTaskCreatePinnedToCore(ws_server_task, "ws_task", 8192, NULL, 5, NULL, 0);
 
     //------------------------------------------------------------------
     // --- CORE 1 ---
+    cpuid = 1;
     ESP_LOGI(TAG, "CORE 1 initing");
 
-    i2c_master_init();
+    // i2c_sensor_manager_start(cpuid);
+    // i2c_init(cpuid);
     /*
     xTaskCreatePinnedToCore(i2c_task, "i2c_task", 4096, (void*)i2c_queue, 6, NULL, 1);
     xTaskCreatePinnedToCore(processing_task, "processing_task", 4096, (void*)i2c_queue, 5, NULL, 1);
     */
+    //------------------------------------------------------------------
+    // mpu6050_test
+    mpu6050_test_start(ws_queue, cpuid);
     //------------------------------------------------------------------
 }
 //----------------------------------------------------------------------
