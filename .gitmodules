@@ -1,6 +1,3 @@
-[submodule "esp32imu/components/esp_littlefs"]
-	path = esp32imu/components/esp_littlefs
-	url = https://github.com/joltwallet/esp_littlefs.git
-[submodule "esp_littlefs"]
-	path = esp_littlefs
+[submodule "esp32ahrs/components/esp_littlefs"]
+	path = esp32ahrs/components/esp_littlefs
 	url = https://github.com/joltwallet/esp_littlefs.git
