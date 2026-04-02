@@ -18,13 +18,14 @@
 //----------------------------------------------------------------------
 #define TAG "I2C SETUP DEVICES"
 //----------------------------------------------------------------------
-void setup_devices(i2c_device_t *device)
+void i2c_device_init(i2c_device_t *device)
 {
     uint8_t addr = device->dev_cfg.device_address;
 
     switch (addr)
     {
-    case 0x68:
+    case DEVICE_ADDRESS::MPU6050_LOW:
+    case DEVICE_ADDRESS::MPU6050_HIGHT:
     {
         // s->ops = &MPU6050_ops;
         // s->ctx = calloc(1, sizeof(MPU6050_ctx_t));
@@ -32,7 +33,7 @@ void setup_devices(i2c_device_t *device)
             return;
     }
     break;
-    case 0x69:
+    case 0x70:
     {
     }
     break;

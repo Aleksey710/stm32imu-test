@@ -21,6 +21,7 @@ idf_component_register(
         # esp_driver_uart
         #AL
         config
+        data
 
         MPU6050
 )

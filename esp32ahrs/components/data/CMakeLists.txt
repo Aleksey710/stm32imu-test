@@ -1,7 +1,12 @@
 idf_component_register(
     SRCS 
-        "webserver.c"
+        "gyroscope_data.c"
+        "accelerometer_data.c"
+        "IMU_data.c"
+        "magnetometer_data.c"
+        "AHRS_data.c"
 
+        "ws_msg_ringbuf.c"
 
 
     INCLUDE_DIRS
@@ -10,17 +15,7 @@ idf_component_register(
 
     REQUIRES 
         freertos
-        esp_wifi 
-        nvs_flash
-        esp_http_server 
-        esp_littlefs
-        
-        cjson
-        fs
         config
-        data
-        
-        # mqtt
         # nvs_flash
         # esp_wifi 
         # #mbedtls

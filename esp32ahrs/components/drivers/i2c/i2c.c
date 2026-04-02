@@ -12,7 +12,8 @@
 
 #include "driver/i2c_master.h"
 
-#include "config_i2c.h"
+#include "config.h"
+#include "data.h"
 
 //-----------------------------------
 // не менять последовательность
@@ -49,7 +50,7 @@ static bool i2c_probe(uint8_t addr)
     return ret == ESP_OK;
 }
 //----------------------------------------------------------------------
-static void register_device(uint8_t addr)
+static void i2c_register_device(uint8_t addr)
 {
     if (device_count >= MAX_DEVICES)
         return;
@@ -73,10 +74,7 @@ static void register_device(uint8_t addr)
 
     i2c_device->dev_cfg = dev_cfg;
 
-    setup_devices(i2c_device);
-
-    // if (i2c_device->ops->init)
-    //     i2c_device->ops->init(s);
+    i2c_device_init(i2c_device);
 
     devices[device_count++] = i2c_device;
 
@@ -92,15 +90,14 @@ void i2c_scan_and_register(void)
         if (i2c_probe(addr))
         {
             ESP_LOGI(TAG, "Found device at 0x%02X", addr);
-            register_device(addr);
+            i2c_register_device(addr);
         }
     }
 }
 //----------------------------------------------------------------------
-// ---------------- TASK ----------------
 static void i2c_device_task(void *arg)
 {
-    // device_data_t data;
+    device_data_t data;
 
     while (1)
     {
@@ -108,22 +105,21 @@ static void i2c_device_task(void *arg)
         {
             i2c_device_t *device = devices[i];
 
-            // if (device->backend->read(s, &data) == ESP_OK)
-            // {
-            //     ESP_LOGI(TAG,
-            //              "[%s] x=%.2f y=%.2f z=%.2f",
-            //              device->backend->name,
-            //              data.x, data.y, data.z);
+            if (device->backend->read(device, &data) == ESP_OK)
+            {
+                // ESP_LOGI(TAG,
+                //          "[%s] x=%.2f y=%.2f z=%.2f",
+                //          device->backend->name,
+                //          data.x, data.y, data.z);
 
-            //     // 👉 сюда можно отправку в очередь добавить
-            // }
+                // 👉 сюда можно отправку в очередь добавить
+            }
         }
 
         vTaskDelay(pdMS_TO_TICKS(200));
     }
 }
 //----------------------------------------------------------------------
-// ---------------- INIT ----------------
 void i2c_init(const int cpuid)
 {
     ESP_LOGI(TAG, "Init I2C");

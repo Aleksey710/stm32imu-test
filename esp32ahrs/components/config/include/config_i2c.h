@@ -1,5 +1,5 @@
-#ifndef CONFIG_FS_H
-#define CONFIG_FS_H
+#ifndef CONFIG_I2C_H
+#define CONFIG_I2C_H
 //----------------------------------------------------------------------
 #include <inttypes.h>
 //----------------------------------------------------------------------
@@ -27,11 +27,11 @@
 // пины камеры(Y2–Y9, XCLK, PCLK и т.д.)
 // USB D+/D- (43/44 если используется USB)
 
-#define I2C_SDA 4
-#define I2C_SCL 5
+#define I2C_SDA_GPIO 4
+#define I2C_SCL_GPIO 5
 
 #define I2C_FREQ 400000
 
 #define MAX_DEVICES 8
 //----------------------------------------------------------------------
-#endif // CONFIG_FS_H
+#endif // CONFIG_I2C_H

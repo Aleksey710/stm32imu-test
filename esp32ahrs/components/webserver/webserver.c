@@ -11,12 +11,15 @@
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
+#include "freertos/ringbuf.h"
 
 #include "cJSON.h"
 
 #include "config.h"
-#include "config_fs.h"
 #include "fs.h"
+#include "IMU_data.h"
+#include "ws_msg_ringbuf.h"
+
 //----------------------------------------------------------------------
 #define MAX_WS_CLIENTS 8
 
@@ -236,87 +239,91 @@ static esp_err_t ws_handler(httpd_req_t *req)
     return ESP_OK;
 }
 //----------------------------------------------------------------------
+void send_ws_msg(char *json_str, int json_str_len)
+{
+    httpd_ws_frame_t frame = {
+        .type = HTTPD_WS_TYPE_TEXT,
+        .payload = (uint8_t *)json_str,
+        .len = json_str_len};
+
+    xSemaphoreTake(ws_clients_mutex, portMAX_DELAY);
+    for (int i = 0; i < MAX_WS_CLIENTS; i++)
+    {
+        if (ws_clients[i] != -1)
+        {
+            esp_err_t ret = httpd_ws_send_frame_async(server, ws_clients[i], &frame);
+
+            ESP_LOGI(TAG, "ws_sender_task sended[%s]", json_str);
+            if (ret != ESP_OK)
+            {
+                ws_clients[i] = -1; // клиент отключился
+                ESP_LOGI(TAG, "Removed dead WS client fd=%d", ws_clients[i]);
+            }
+        }
+    }
+    xSemaphoreGive(ws_clients_mutex);
+}
+//----------------------------------------------------------------------
 static void ws_sender_task(void *arg)
 {
+    while (1)
+    {
+        size_t size;
+        Ws_msg_t **msg_ptr = (Ws_msg_t **)xRingbufferReceive(
+            ws_msg_ringbuf, &size, portMAX_DELAY);
 
-    mpu_data_t test_data;
+        if (msg_ptr)
+        {
+            Ws_msg_t *msg = *msg_ptr;
+            //--------------------
+            // ESP_LOGI(TAG, "Received: %s", msg->data);
 
-    test_data.ax = 1.0f;
-    test_data.ay = 2.0f;
-    test_data.az = 3.0f;
+            send_ws_msg(msg->data->data, int msg->data->len);
 
-    test_data.gx = 0.1f;
-    test_data.gy = 0.2f;
-    test_data.gz = 0.3f;
+            //--------------------
+            free_ws_msg(msg); // возвращаем в пул
+            vRingbufferReturnItem(ws_msg_ringbuf, msg_ptr);
+        }
 
-    test_data.x = 10.1f;
-    test_data.y = 20.2f;
-    test_data.z = 30.3f;
+        // ограничение частоты посылки
+        // vTaskDelay(pdMS_TO_TICKS(20)); // 20 - 50 Hz
 
-    test_data.roll = 10.1f;
-    test_data.pitch = 20.2f;
-    test_data.yaw = 30.3f;
+        // yeld - освобождение потока
+        vTaskDelay(pdMS_TO_TICKS(1));
+    }
 
-    // test_data.timestamp = 0;
+    /*
 
-    xQueueSend(ws_queue, &test_data, portMAX_DELAY);
-    //---------
-    mpu_data_t data;
+        // mpu_data_t test_data;
+
+    // test_data.ax = 1.0f;
+    // test_data.ay = 2.0f;
+    // test_data.az = 3.0f;
+
+    // test_data.gx = 0.1f;
+    // test_data.gy = 0.2f;
+    // test_data.gz = 0.3f;
+
+    // test_data.x = 10.1f;
+    // test_data.y = 20.2f;
+    // test_data.z = 30.3f;
+
+    // test_data.roll = 10.1f;
+    // test_data.pitch = 20.2f;
+    // test_data.yaw = 30.3f;
+
+    // // test_data.timestamp = 0;
+
+    // xQueueSend(ws_queue, &test_data, portMAX_DELAY);
+    // //---------
+    // mpu_data_t data;
 
     while (1)
     {
-        /*
-        if (test_data.x < 1000)
-            test_data.x++;
-        else
-            test_data.x = 0;
-
-        if (test_data.y < 1000)
-            test_data.y++;
-        else
-            test_data.y = 0;
-
-        if (test_data.z < 1000)
-            test_data.z++;
-        else
-            test_data.z = 0;
-
-        // if (test_data.timestamp < 1000)
-        //     test_data.timestamp++;
-        // else
-        //     test_data.timestamp = 0;
-
-        xQueueSend(ws_queue, &test_data, portMAX_DELAY); // добавление тестовых данных
-        */
         //--------------------
         if (xQueueReceive(ws_queue, &data, portMAX_DELAY))
         {
-            /*
-            cJSON *root = cJSON_CreateObject();
-            cJSON_AddNumberToObject(root, "ax", data.ax);
-            cJSON_AddNumberToObject(root, "ay", data.ay);
-            cJSON_AddNumberToObject(root, "az", data.az);
 
-            cJSON_AddNumberToObject(root, "gx", data.gx);
-            cJSON_AddNumberToObject(root, "gy", data.gy);
-            cJSON_AddNumberToObject(root, "gz", data.gz);
-
-            cJSON_AddNumberToObject(root, "x", data.x);
-            cJSON_AddNumberToObject(root, "y", data.y);
-            cJSON_AddNumberToObject(root, "z", data.z);
-
-            cJSON_AddNumberToObject(root, "roll", data.roll);
-            cJSON_AddNumberToObject(root, "pitch", data.pitch);
-            cJSON_AddNumberToObject(root, "yaw", data.yaw);
-
-            cJSON_AddNumberToObject(root, "timestamp", data.timestamp);
-
-            char *json_str = cJSON_PrintUnformatted(root);
-            cJSON_Delete(root);
-
-                        if (!json_str)
-                continue;
-            */
             char json_str[256];
 
             int json_str_len = snprintf(json_str, sizeof(json_str),
@@ -331,29 +338,7 @@ static void ws_sender_task(void *arg)
                                         (double)data.x, (double)data.y, (double)data.z,
                                         (double)data.roll, (double)data.pitch, (double)data.yaw);
 
-            httpd_ws_frame_t frame = {
-                .type = HTTPD_WS_TYPE_TEXT,
-                .payload = (uint8_t *)json_str,
-                .len = json_str_len};
-
-            xSemaphoreTake(ws_clients_mutex, portMAX_DELAY);
-            for (int i = 0; i < MAX_WS_CLIENTS; i++)
-            {
-                if (ws_clients[i] != -1)
-                {
-                    esp_err_t ret = httpd_ws_send_frame_async(server, ws_clients[i], &frame);
-
-                    ESP_LOGI(TAG, "ws_sender_task sended[%s]", json_str);
-                    if (ret != ESP_OK)
-                    {
-                        ws_clients[i] = -1; // клиент отключился
-                        ESP_LOGI(TAG, "Removed dead WS client fd=%d", ws_clients[i]);
-                    }
-                }
-            }
-            xSemaphoreGive(ws_clients_mutex);
-
-            // free(json_str);
+            send_ws_msg(json_str, json_str_len);
 
             vTaskDelay(pdMS_TO_TICKS(1));
         }
@@ -363,6 +348,7 @@ static void ws_sender_task(void *arg)
         // yeld - освобождение потока
         vTaskDelay(pdMS_TO_TICKS(1));
     }
+        */
 }
 //----------------------------------------------------------------------
 static void ws_ping_task(void *arg)

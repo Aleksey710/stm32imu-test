@@ -20,6 +20,7 @@ idf_component_register(
 		# esp_driver_ledc
 		# esp_driver_uart
 		config
+		data
 		fs
 		wifi
 		webserver

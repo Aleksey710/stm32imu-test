@@ -70,7 +70,12 @@ Component config → SPIFFS → Enable SPIFFS
 ## Добавление в проект
 
 https://components.espressif.com/components/joltwallet/littlefs/versions/1.20.4/readme
-git submodule add https://github.com/joltwallet/esp_littlefs.git
+
+As a ESP-IDF managed component: In your project directory run
+idf.py add-dependency joltwallet/littlefs==1.20.4
+
+As a submodule: In your project, add this as a submodule to your components/ directory.
+git submodule add https://github.com/joltwallet/esp_littlefs.git components/esp_littlefs
 git submodule update --init --recursive
 
 ESP-IDF при сборке LittleFS создает Python virtualenv (littlefs_py_venv) 
