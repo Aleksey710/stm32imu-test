@@ -1,9 +1,0 @@
-[submodule "esp32ahrs/components/esp_littlefs,"]
-	path = esp32ahrs/components/esp_littlefs,
-	url = https://github.com/joltwallet/esp_littlefs.git
-[submodule "esp32ahrs/components/esp_littlefs"]
-	path = esp32ahrs/components/esp_littlefs
-	url = https://github.com/joltwallet/esp_littlefs.git
-[submodule "esp32ahrs/components/esp-idf-lib/mpu6050"]
-	path = esp32ahrs/components/esp-idf-lib/mpu6050
-	url = https://github.com/esp-idf-lib/mpu6050.git
