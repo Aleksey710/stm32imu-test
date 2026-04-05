@@ -7,3 +7,6 @@
 [submodule "esp32ahrs/components/esp-idf-lib/mpu6050"]
 	path = esp32ahrs/components/esp-idf-lib/mpu6050
 	url = https://github.com/esp-idf-lib/mpu6050.git
+[submodule "esp32ahrs/components/esp-idf-lib/qmc5883l"]
+	path = esp32ahrs/components/esp-idf-lib/qmc5883l
+	url = https://github.com/esp-idf-lib/qmc5883l.git
