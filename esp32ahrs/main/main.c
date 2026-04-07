@@ -77,7 +77,7 @@ void app_main(void)
     // mpu6050_test
     mpu6050_test_start(cpuId);
 
-    qmc5883l_test_start(cpuId);
+    // qmc5883l_test_start(cpuId);
 
     // adxl345_test_start(cpuId);
     //------------------------------------------------------------------
