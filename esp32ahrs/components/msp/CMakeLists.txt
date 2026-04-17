@@ -1,6 +1,6 @@
 idf_component_register(
     SRCS 
-        "bluetooth.c"
+        "msp.c"
 
 
 
@@ -9,7 +9,6 @@ idf_component_register(
 
 
     REQUIRES 
-		bt
 		nvs_flash
 		esp_event
 		#esp_partition
@@ -27,6 +26,7 @@ idf_component_register(
 		# esp_driver_uart
 		config
 		data
+		bluetooth
 
 
 )

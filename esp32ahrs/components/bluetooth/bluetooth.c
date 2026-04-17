@@ -1,9 +1,13 @@
 #include "bluetooth.h"
 
-#include "config_bluetooth.h"
-//----------------------------------------------------------------------
-#include "bluetooth.h"
+#include <stdio.h>
+#include <string.h>
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/queue.h"
+
+#include "esp_system.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
 
@@ -15,8 +19,10 @@
 
 #include "host/ble_hs.h"
 #include "host/util/util.h"
-//----------------------------------------------------------------------
-QueueHandle_t imu_queue = NULL;
+
+#include "config_bluetooth.h"
+#include "ble_data.h"
+
 //----------------------------------------------------------------------
 static const char *TAG = "BLE";
 
@@ -127,7 +133,7 @@ void ble_tx_task(void *arg)
 
     while (1)
     {
-        if (xQueueReceive(imu_queue, &data, portMAX_DELAY))
+        if (xQueueReceive(ble_queue, &data, portMAX_DELAY))
         {
             ble_send((uint8_t *)data, strlen(data));
         }
@@ -159,16 +165,7 @@ void ble_init(const int cpuId)
     nimble_port_freertos_init(ble_host_task);
 
     //------------------------------------------------------------------
-    imu_queue = xQueueCreate(10, 128);
+    ble_queue = xQueueCreate(10, 128);
 
     xTaskCreatePinnedToCore(ble_tx_task, "ble_tx", 4096, NULL, 5, NULL, cpuId);
 }
-/*
-char json[128];
-
-snprintf(json, sizeof(json),
-    "{\"x\":%.2f,\"y\":%.2f,\"z\":%.2f}",
-    roll, pitch, yaw);
-
-xQueueSend(imu_queue, &json, 0);
-*/

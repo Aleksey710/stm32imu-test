@@ -16,7 +16,6 @@
 | https://github.com/rtlopez/esp-fc           |                                     | 
 | https://github.com/okalachev/flix           | https://quadcopter.dev              | 
 |                                             |                                     | 
-| ------------------------------------------- | ----------------------------------- |
 
 Большое спасибо @well_techn [https://www.youtube.com/@well_techn] 
 за подробное и понятное объяснение сложных вещей простым языком.
